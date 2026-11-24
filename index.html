@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rumah Modern - Peliharaan Macan, Kanopi Samping & Auto Mode</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            background: #090d16;
+            color: #f1f5f9;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Floating Dashboard */
+        .dashboard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 360px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            z-index: 20;
+        }
+
+        .dashboard::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .dashboard::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .icon-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+        }
+
+        .subhead {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        /* Auto Mode Banner Card */
+        .auto-mode-card {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(14, 165, 233, 0.1));
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+
+        .auto-mode-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .auto-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: #0284c7;
+            color: #fff;
+            border: 1px solid #38bdf8;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 14px rgba(2, 132, 199, 0.5);
+            transition: all 0.2s;
+        }
+
+        .auto-btn.paused {
+            background: #334155;
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #94a3b8;
+            box-shadow: none;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .auto-status-text {
+            font-size: 0.72rem;
+            color: #bae6fd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Mode Cuaca Manual Buttons */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .mode-btn {
+            padding: 9px 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: #1e293b;
+            color: #cbd5e1;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mode-btn:hover {
+            background: #334155;
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 18px rgba(2, 132, 199, 0.5);
+        }
+
+        /* Telemetri */
+        .telemetry {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.76rem;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .badge-sunny {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .badge-rain {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+        }
+
+        .badge-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .badge-retracted {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+        }
+
+        /* Sliders */
+        .slider-card {
+            margin-bottom: 10px;
+        }
+
+        .slider-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.74rem;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+        }
+
+        /* Kamera Presets */
+        .cam-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .cam-btn {
+            padding: 6px 2px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 0.68rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cam-btn:hover {
+            background: #334155;
+            color: #fff;
+        }
+
+        /* Toggles */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.74rem;
+            color: #cbd5e1;
+        }
+
+        .switch-btn {
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+            font-size: 0.68rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .switch-btn.on {
+            background: #0284c7;
+            color: #fff;
+            border-color: #38bdf8;
+        }
+
+        .callout {
+            background: rgba(30, 41, 59, 0.7);
+            border-left: 3px solid #f59e0b;
+            border-radius: 8px;
+            padding: 9px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            line-height: 1.45;
+            margin-top: 10px;
+        }
+
+        /* 3D Floating Labels */
+        .label3d {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            color: #e0f2fe;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            pointer-events: none;
+            transform: translate(-50%, -100%);
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+            transition: opacity 0.2s;
+            z-index: 5;
+        }
+
+        .label3d::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: rgba(56, 189, 248, 0.5) transparent;
+            display: block;
+            width: 0;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+</head>
+
+<body>
+
+    <!-- Floating Dashboard -->
+    <div class="dashboard">
+        <div class="header">
+            <div class="icon-badge">
+                <span style="font-size: 1.2rem;">🐯</span>
+            </div>
+            <div>
+                <h1>Rumah Modern & Macan Peliharaan</h1>
+                <div class="subhead">Macan Diikat + Tempat Tidur + Kanopi Lipat</div>
+            </div>
+        </div>
+
+        <!-- BANNER MODE AUTO 3 DETIK -->
+        <div class="auto-mode-card">
+            <div class="auto-mode-top">
+                <span style="font-weight:700; font-size:0.78rem; color:#e0f2fe;">🔄 Mode Auto Demo</span>
+                <button class="auto-btn" id="btn-toggle-auto" onclick="toggleAutoMode()">
+                    <span id="auto-btn-icon">⏸️</span>
+                    <span id="auto-btn-text">AUTO ON</span>
+                </button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="auto-progress-fill"></div>
+            </div>
+            <div class="auto-status-text">
+                <span id="auto-stage-desc">Langkah: Cerah (Jemur & Ngopi)</span>
+                <span id="auto-timer-badge" style="font-weight:700; color:#38bdf8;">3.0s</span>
+            </div>
+        </div>
+
+        <!-- Mode Cuaca Manual -->
+        <div class="section-title">
+            <span>Pilih Mode Cuaca</span>
+        </div>
+        <div class="mode-grid">
+            <button class="mode-btn active" id="btn-cerah" onclick="manualSwitchMode('cerah')">
+                <span style="font-size:1.15rem">☀️</span>
+                <span>Cerah</span>
+            </button>
+            <button class="mode-btn" id="btn-hujan" onclick="manualSwitchMode('hujan')">
+                <span style="font-size:1.15rem">🌧️</span>
+                <span>Hujan</span>
+            </button>
+            <button class="mode-btn" id="btn-malam" onclick="manualSwitchMode('malam')">
+                <span style="font-size:1.15rem">🌙</span>
+                <span>Malam</span>
+            </button>
+        </div>
+
+        <!-- Telemetri -->
+        <div class="section-title">
+            <span>Status Sistem Realtime</span>
+        </div>
+        <div class="telemetry">
+            <div class="stat-row">
+                <span>Peliharaan Depan:</span>
+                <span style="color:#f59e0b; font-weight:700">🐯 Macan Bengal (Diikat Rantai)</span>
+            </div>
+            <div class="stat-row">
+                <span>Sensor MH-RD Genteng:</span>
+                <span class="badge badge-sunny" id="status-sensor">KERING (0 V)</span>
+            </div>
+            <div class="stat-row">
+                <span>Kondisi Cuaca:</span>
+                <span class="badge badge-sunny" id="status-cuaca">TERIK PANAS</span>
+            </div>
+            <div class="stat-row">
+                <span>Aktivitas Orang:</span>
+                <span style="color:#4ade80; font-weight:600" id="status-orang">☕ Duduk Ngopi di Teras</span>
+            </div>
+            <div class="stat-row">
+                <span>Kanopi Samping Kanan:</span>
+                <span class="badge badge-retracted" id="status-kanopi">MENGKERUT (0%)</span>
+            </div>
+            <div class="stat-row">
+                <span>Rel Jemuran Kanan:</span>
+                <span class="badge badge-active" id="status-jemuran">MAJU MENJEMUR</span>
+            </div>
+        </div>
+
+        <!-- Kontrol Slider -->
+        <div class="section-title">
+            <span>Kontrol Gerak Manual</span>
+        </div>
+        <div class="slider-card">
+            <div class="slider-meta">
+                <span>Bentangan Kain Kanopi:</span>
+                <span id="label-val-kanopi" style="color:#38bdf8; font-weight:600">0% (Mengkerut Rapat)</span>
+            </div>
+            <input type="range" id="range-kanopi" min="0" max="1" step="0.005" value="0"
+                oninput="onSlideKanopi(this.value)">
+        </div>
+
+        <div class="slider-card">
+            <div class="slider-meta">
+                <span>Posisi Rel Jemuran:</span>
+                <span id="label-val-jemuran" style="color:#38bdf8; font-weight:600">100% (Keluar Penuh)</span>
+            </div>
+            <input type="range" id="range-jemuran" min="0" max="1" step="0.005" value="1"
+                oninput="onSlideJemuran(this.value)">
+        </div>
+
+        <!-- Sudut Kamera Presets -->
+        <div class="section-title">
+            <span>Sudut Kamera Presets</span>
+        </div>
+        <div class="cam-presets">
+            <button class="cam-btn" onclick="moveCamera('tiger')">🐯 Macan Depan</button>
+            <button class="cam-btn" onclick="moveCamera('overview')">Pekarangan</button>
+            <button class="cam-btn" onclick="moveCamera('sensor_roof')">🔍 Sensor Genteng</button>
+            <button class="cam-btn" onclick="moveCamera('porch')">Pintu & Teras</button>
+            <button class="cam-btn" onclick="moveCamera('side_canopy')">Jemuran Kanan</button>
+            <button class="cam-btn" onclick="moveCamera('detail_fold')">Detail Lipatan</button>
+        </div>
+
+        <!-- Toggles -->
+        <div class="toggle-row">
+            <span>Label Komponen 3D:</span>
+            <button class="switch-btn on" id="toggle-labels" onclick="toggleLabels()">TAMPIL</button>
+        </div>
+        <div class="toggle-row">
+            <span>Efek Suara Sintesis (Audio):</span>
+            <button class="switch-btn on" id="toggle-audio" onclick="toggleAudio()">AKTIF</button>
+        </div>
+
+        <div class="callout">
+            🐯 <b>Peliharaan Macan Penjaga Rumah:</b><br>
+            Ditempatkan di halaman depan sebelah kiri dengan kalung leher kulit & rantai besi yang terikat ke tiang
+            pasak kayu, beristirahat gagah di atas tempat tidur matras empuk dengan ekor yang bergoyang dinamis.
+        </div>
+    </div>
+
+    <!-- 3D Labels -->
+    <div id="labels-container">
+        <div class="label3d" id="lbl-tiger">🐯 Macan Peliharaan Diikat Rantai & Tempat Tidur</div>
+        <div class="label3d" id="lbl-sensor">⚡ Sensor Hujan MH-RD (Atap Genteng)</div>
+        <div class="label3d" id="lbl-coffee">Meja Teras Depan Rumah</div>
+        <div class="label3d" id="lbl-door">Pintu Depan Rumah</div>
+        <div class="label3d" id="lbl-canopy">Kanopi Kain Lipat Samping</div>
+        <div class="label3d" id="lbl-rack">Rel Jemuran Samping Kanan</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script>
+        // ==========================================
+        // 1. THREE.JS SCENE SETUP & LIGHTING
+        // ==========================================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.012);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 150);
+        camera.position.set(15, 10, 19);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.02;
+        controls.target.set(0.5, 2.5, 2);
+
+        // Pencahayaan
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xfff7ed, 1.45);
+        sunLight.position.set(22, 30, 20);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.near = 0.5;
+        sunLight.shadow.far = 75;
+        sunLight.shadow.left = -22;
+        sunLight.shadow.right = 22;
+        sunLight.shadow.top = 22;
+        sunLight.shadow.bottom = -22;
+        sunLight.shadow.bias = -0.0003;
+        scene.add(sunLight);
+
+        // Lampu Teras & Interior
+        const porchLight = new THREE.PointLight(0xffaa44, 0, 12);
+        porchLight.position.set(-1.0, 3.8, 3.3);
+        scene.add(porchLight);
+
+        const indoorLight = new THREE.PointLight(0xffaa44, 0, 18);
+        indoorLight.position.set(-2, 3.8, 0);
+        scene.add(indoorLight);
+
+        const sideYardLamp = new THREE.PointLight(0xffd288, 0, 12);
+        sideYardLamp.position.set(6.8, 4.4, 0);
+        scene.add(sideYardLamp);
+
+        const sensorIndicatorLight = new THREE.PointLight(0x38bdf8, 0, 2);
+        sensorIndicatorLight.position.set(-2.0, 9.4, 1.5);
+        scene.add(sensorIndicatorLight);
+
+        // ==========================================
+        // 2. BANGUNAN RUMAH UTAMA & ATAP GENTENG
+        // ==========================================
+        const houseGroup = new THREE.Group();
+        scene.add(houseGroup);
+
+        const wallWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.85 });
+        const wallDarkMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+        const woodPanelMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.7 });
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 });
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.1, metalness: 0.85, transparent: true, opacity: 0.55 });
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+
+        const floor1 = new THREE.Mesh(new THREE.BoxGeometry(11, 4.6, 9), wallWhiteMat);
+        floor1.position.set(-1.5, 2.3, -1.5);
+        floor1.castShadow = true;
+        floor1.receiveShadow = true;
+        houseGroup.add(floor1);
+
+        const floor2 = new THREE.Mesh(new THREE.BoxGeometry(10, 4.2, 8.5), wallWhiteMat);
+        floor2.position.set(-2.0, 6.7, -1.3);
+        floor2.castShadow = true;
+        floor2.receiveShadow = true;
+        houseGroup.add(floor2);
+
+        const woodAccent = new THREE.Mesh(new THREE.BoxGeometry(3.6, 4.0, 0.2), woodPanelMat);
+        woodAccent.position.set(0.8, 6.7, 3.0);
+        woodAccent.castShadow = true;
+        houseGroup.add(woodAccent);
+
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.35, 9.0), roofMat);
+        roof.position.set(-2.0, 8.9, -1.3);
+        roof.castShadow = true;
+        houseGroup.add(roof);
+
+        const balcony = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.2, 1.4), wallDarkMat);
+        balcony.position.set(-4.2, 4.65, 3.6);
+        houseGroup.add(balcony);
+
+        const balconyRailing = new THREE.Mesh(new THREE.BoxGeometry(4.7, 1.0, 0.05), glassMat);
+        balconyRailing.position.set(-4.2, 5.25, 4.3);
+        houseGroup.add(balconyRailing);
+
+        const roofTileMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.75 });
+        const pitchedRoof = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.16, 2.8), roofTileMat);
+        pitchedRoof.rotation.x = 0.26;
+        pitchedRoof.position.set(-2.2, 9.15, 1.8);
+        pitchedRoof.castShadow = true;
+        pitchedRoof.receiveShadow = true;
+        houseGroup.add(pitchedRoof);
+
+        // ==========================================
+        // 3. MODEL SENSOR HUJAN MH-RD GENTENG
+        // ==========================================
+        function createMHRDTexture() {
+            const cvs = document.createElement('canvas');
+            cvs.width = 512;
+            cvs.height = 512;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, 512, 512);
+
+            ctx.fillStyle = '#ffffff';
+            [[35, 35], [35, 477], [477, 35], [477, 477]].forEach(([hx, hy]) => {
+                ctx.beginPath();
+                ctx.arc(hx, hy, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#0a0a0a';
+                ctx.beginPath();
+                ctx.arc(hx, hy, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+            });
+
+            ctx.font = 'bold 20px monospace';
+            ctx.fillStyle = '#f1f5f9';
+            ctx.save();
+            ctx.translate(52, 360);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Raindrops module', 0, 0);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(460, 220);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillText('MH-RD', 0, 0);
+            ctx.restore();
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 14;
+            ctx.lineCap = 'square';
+            ctx.strokeRect(70, 70, 372, 372);
+
+            ctx.beginPath();
+            for (let x = 110; x <= 410; x += 36) {
+                ctx.moveTo(x, 82);
+                ctx.lineTo(x, 400);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            for (let x = 128; x <= 392; x += 36) {
+                ctx.moveTo(x, 430);
+                ctx.lineTo(x, 112);
+            }
+            ctx.stroke();
+
+            return new THREE.CanvasTexture(cvs);
+        }
+
+        const sensorGroup = new THREE.Group();
+        sensorGroup.position.set(-2.0, 9.38, 1.8);
+        sensorGroup.rotation.x = 0.26;
+        scene.add(sensorGroup);
+
+        const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.85), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
+        bracket.position.y = -0.02;
+        sensorGroup.add(bracket);
+
+        const mhrdTexture = createMHRDTexture();
+        const sensorPlateMat = new THREE.MeshStandardMaterial({ map: mhrdTexture, roughness: 0.35, metalness: 0.65 });
+        const sensorPlate = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.02, 0.78), sensorPlateMat);
+        sensorPlate.castShadow = true;
+        sensorPlate.receiveShadow = true;
+        sensorGroup.add(sensorPlate);
+
+        const waterDropMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.0 });
+        const waterDropMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.7), waterDropMat);
+        waterDropMesh.rotation.x = -Math.PI / 2;
+        waterDropMesh.position.y = 0.012;
+        sensorGroup.add(waterDropMesh);
+
+        const pinHeaderBase = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.14), new THREE.MeshStandardMaterial({ color: 0x111827 }));
+        pinHeaderBase.position.set(0.33, 0.03, 0);
+        sensorGroup.add(pinHeaderBase);
+
+        const pinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.2 });
+        [-0.035, 0.035].forEach(zPin => {
+            const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8), pinMat);
+            pin.rotation.z = Math.PI / 2;
+            pin.position.set(0.42, 0.03, zPin);
+            sensorGroup.add(pin);
+        });
+
+        const wire1 = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+        wire1.rotation.z = 1.2;
+        wire1.position.set(0.7, 0.02, -0.04);
+        sensorGroup.add(wire1);
+
+        const wire2 = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+        wire2.rotation.z = 1.2;
+        wire2.position.set(0.7, 0.02, 0.04);
+        sensorGroup.add(wire2);
+
+        const sensorLED = new THREE.Mesh(new THREE.SphereGeometry(0.02, 8, 8), new THREE.MeshBasicMaterial({ color: 0x64748b }));
+        sensorLED.position.set(0.24, 0.025, 0.32);
+        sensorGroup.add(sensorLED);
+
+        // ==========================================
+        // 4. MODEL 3D PELIHARAAN MACAN DIIKAT & TEMPAT TIDUR
+        // (Ditempatkan di Halaman Depan Rumah Sisi Kiri)
+        // ==========================================
+        const tigerArea = new THREE.Group();
+        // Posisi di pekarangan depan sebelah kiri
+        tigerArea.position.set(-6.2, 0.11, 6.8);
+        scene.add(tigerArea);
+
+        // --- TEMPAT TIDUR MACAN (PET BED MATTRESS) ---
+        const bedGroup = new THREE.Group();
+        tigerArea.add(bedGroup);
+
+        // Rangka Kayu Tempat Tidur
+        const bedFrameMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6 });
+        const bedFrame = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.18, 1.8), bedFrameMat);
+        bedFrame.position.set(0, 0.09, 0);
+        bedFrame.castShadow = true;
+        bedFrame.receiveShadow = true;
+        bedGroup.add(bedFrame);
+
+        // Bantal / Matras Empuk Tempat Tidur (Plush Bed Cushion)
+        const cushionMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.85 }); // Kain warna suede cokelat karamel
+        const cushion = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.16, 1.55), cushionMat);
+        cushion.position.set(0, 0.22, 0);
+        cushion.castShadow = true;
+        cushion.receiveShadow = true;
+        bedGroup.add(cushion);
+
+        // Sandaran Tepi Tempat Tidur (Bolster Border)
+        const bolsterMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.8 });
+        const bolsterBack = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.18, 0.16), bolsterMat);
+        bolsterBack.position.set(0, 0.32, -0.8);
+        bedGroup.add(bolsterBack);
+
+        [-1.07, 1.07].forEach(bx => {
+            const bolsterSide = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 1.6), bolsterMat);
+            bolsterSide.position.set(bx, 0.32, 0);
+            bedGroup.add(bolsterSide);
+        });
+
+        // --- TIANG PASAK & IKATAN RANTAI BESI ---
+        // Tiang Pasak Penambat Kayu & Logam di Tanah
+        const postMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.7 });
+        const anchorPost = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.8, 12), postMat);
+        anchorPost.position.set(-1.4, 0.4, 1.1);
+        anchorPost.castShadow = true;
+        tigerArea.add(anchorPost);
+
+        // Cincin Besi di Tiang
+        const ironRing = new THREE.Mesh(
+            new THREE.TorusGeometry(0.09, 0.02, 8, 16),
+            new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 })
+        );
+        ironRing.position.set(-1.4, 0.65, 1.1);
+        tigerArea.add(ironRing);
+
+        // Rantai Pengikat Macan (Metal Chain Line)
+        const chainGeo = new THREE.BufferGeometry();
+        const chainPositions = new Float32Array(6);
+        chainGeo.setAttribute('position', new THREE.BufferAttribute(chainPositions, 3));
+        const chainLine = new THREE.Line(
+            chainGeo,
+            new THREE.LineBasicMaterial({ color: 0xcbd5e1, linewidth: 3 })
+        );
+        tigerArea.add(chainLine);
+
+        // --- MODEL 3D MACAN BENGAL DENGAN CORAK LORENG ---
+        function createTigerTexture() {
+            const cvs = document.createElement('canvas');
+            cvs.width = 512;
+            cvs.height = 512;
+            const ctx = cvs.getContext('2d');
+
+            // Warna Dasar Bulu Macan (Amber / Orange Tua)
+            ctx.fillStyle = '#ea580c';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Bagian Bawah Putih (Perut & Dagu Putih)
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(0, 380, 512, 132);
+
+            // Garis-Garis Belang Macan Hitam Khas (Black Tiger Stripes)
+            ctx.fillStyle = '#0f172a';
+            for (let x = 20; x < 500; x += 45) {
+                ctx.beginPath();
+                ctx.moveTo(x, 40);
+                ctx.lineTo(x + 18, 240);
+                ctx.lineTo(x - 6, 420);
+                ctx.lineTo(x - 14, 230);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            return new THREE.CanvasTexture(cvs);
+        }
+
+        const tigerMat = new THREE.MeshStandardMaterial({
+            map: createTigerTexture(),
+            roughness: 0.75,
+            metalness: 0.05
+        });
+        const whiteFurMat = new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.8 });
+        const blackFurMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
+        const pinkNoseMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 });
+
+        const tigerGroup = new THREE.Group();
+        // Berada di atas tempat tidurnya menghadap ke pekarangan depan
+        tigerGroup.position.set(0, 0.3, 0);
+        tigerGroup.rotation.y = 0.3;
+        bedGroup.add(tigerGroup);
+
+        // Badan Utama Macan Berbaring Gagah (Torso)
+        const tBody = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.52, 1.35), tigerMat);
+        tBody.position.set(0, 0.32, 0);
+        tBody.castShadow = true;
+        tigerGroup.add(tBody);
+
+        // Dada & Bahu Berotot
+        const tChest = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.56, 0.65), tigerMat);
+        tChest.position.set(0, 0.38, 0.45);
+        tChest.castShadow = true;
+        tigerGroup.add(tChest);
+
+        // Kepala Macan (Tiger Head)
+        const tHeadGroup = new THREE.Group();
+        tHeadGroup.position.set(0, 0.68, 0.85);
+        tigerGroup.add(tHeadGroup);
+
+        const tHead = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.44, 0.46), tigerMat);
+        tHead.castShadow = true;
+        tHeadGroup.add(tHead);
+
+        // Moncong Hidung (Muzzle)
+        const tMuzzle = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.22, 0.28), whiteFurMat);
+        tMuzzle.position.set(0, -0.08, 0.28);
+        tHeadGroup.add(tMuzzle);
+
+        const tNose = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.06, 0.04), pinkNoseMat);
+        tNose.position.set(0, 0.02, 0.43);
+        tHeadGroup.add(tNose);
+
+        // Mata Macan Tajam (Amber Eyes)
+        [-0.14, 0.14].forEach(ex => {
+            const tEye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+            tEye.position.set(ex, 0.08, 0.24);
+            tHeadGroup.add(tEye);
+
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 6), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+            pupil.position.set(ex, 0.08, 0.27);
+            tHeadGroup.add(pupil);
+        });
+
+        // Telinga Macan (Rounded Tiger Ears)
+        [-0.2, 0.2].forEach(earX => {
+            const ear = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), blackFurMat);
+            ear.scale.set(0.6, 1, 0.4);
+            ear.position.set(earX, 0.24, -0.05);
+            tHeadGroup.add(ear);
+
+            const innerEar = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), whiteFurMat);
+            innerEar.position.set(earX, 0.24, -0.02);
+            tHeadGroup.add(innerEar);
+        });
+
+        // Kalung Leher Pengikat Macan (Leather Collar)
+        const collarMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.4 }); // Kalung kulit merah tebal
+        const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.1, 16), collarMat);
+        collar.position.set(0, 0.48, 0.65);
+        tigerGroup.add(collar);
+
+        // Ring Logam Pengikat Rantai pada Kalung
+        const collarRing = new THREE.Mesh(
+            new THREE.TorusGeometry(0.05, 0.012, 6, 12),
+            new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 })
+        );
+        collarRing.position.set(0, 0.48, 0.92);
+        tigerGroup.add(collarRing);
+
+        // Kaki Depan Macan (Melurus Santai ke Depan)
+        [-0.22, 0.22].forEach(legX => {
+            const frontLeg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.65), tigerMat);
+            frontLeg.position.set(legX, 0.1, 0.7);
+            frontLeg.castShadow = true;
+            tigerGroup.add(frontLeg);
+
+            // Cakar Telapak Macan (Paws)
+            const paw = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.22), whiteFurMat);
+            paw.position.set(legX, 0.06, 1.05);
+            tigerGroup.add(paw);
+        });
+
+        // Kaki Belakang (Terlipat di Samping Badan)
+        [-0.38, 0.38].forEach(hX => {
+            const hindThigh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.5), tigerMat);
+            hindThigh.position.set(hX, 0.18, -0.32);
+            tigerGroup.add(hindThigh);
+
+            const hindPaw = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.26), whiteFurMat);
+            hindPaw.position.set(hX, 0.06, -0.1);
+            tigerGroup.add(hindPaw);
+        });
+
+        // Ekor Macan yang Lentur & Bergoyang (Tiger Tail)
+        const tailGroup = new THREE.Group();
+        tailGroup.position.set(0, 0.36, -0.68);
+        tigerGroup.add(tailGroup);
+
+        const tail1 = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.45, 8), tigerMat);
+        tail1.rotation.x = -Math.PI / 3;
+        tail1.position.set(0, 0.1, -0.2);
+        tailGroup.add(tail1);
+
+        const tail2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 0.45, 8), blackFurMat);
+        tail2.rotation.x = -Math.PI / 6;
+        tail2.position.set(0, 0.24, -0.5);
+        tailGroup.add(tail2);
+
+        // Mangkok Makan / Minum Macan di Sisi Tempat Tidur
+        const bowlMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
+        const tigerBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.16, 0.14, 16), bowlMat);
+        tigerBowl.position.set(1.4, 0.07, 0.7);
+        tigerBowl.castShadow = true;
+        tigerArea.add(tigerBowl);
+
+        const bowlWater = new THREE.Mesh(new THREE.CircleGeometry(0.19, 16), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        bowlWater.rotation.x = -Math.PI / 2;
+        bowlWater.position.set(1.4, 0.13, 0.7);
+        tigerArea.add(bowlWater);
+
+        // Fungsi Update Posisi Rantai yang Terhubung ke Kalung Leher Macan
+        function updateTigerChain() {
+            // Posisi cincin pasak di tanah
+            const postPos = new THREE.Vector3(-1.4, 0.65, 1.1);
+            // Posisi cincin kalung macan di ruang dunia
+            const collarPos = new THREE.Vector3();
+            collarRing.getWorldPosition(collarPos);
+            // Konversi ke koordinat lokal tigerArea
+            tigerArea.worldToLocal(collarPos);
+
+            const pArr = chainLine.geometry.attributes.position.array;
+            pArr[0] = postPos.x; pArr[1] = postPos.y; pArr[2] = postPos.z;
+            pArr[3] = collarPos.x; pArr[4] = collarPos.y; pArr[5] = collarPos.z;
+            chainLine.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // --- PINTU DEPAN RUMAH DENGAN ENGSEL INTERAKTIF ---
+        const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.2, 0.18), frameMat);
+        doorFrame.position.set(-1.0, 1.6, 3.05);
+        doorFrame.castShadow = true;
+        houseGroup.add(doorFrame);
+
+        const entranceHole = new THREE.Mesh(new THREE.BoxGeometry(1.35, 3.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 }));
+        entranceHole.position.set(-1.0, 1.6, 2.5);
+        houseGroup.add(entranceHole);
+
+        const doorHinge = new THREE.Group();
+        doorHinge.position.set(-1.65, 1.6, 3.06);
+        houseGroup.add(doorHinge);
+
+        const doorLeaf = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.95, 0.08), woodPanelMat);
+        doorLeaf.position.set(0.65, 0, 0);
+        doorLeaf.castShadow = true;
+        doorHinge.add(doorLeaf);
+
+        const doorHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 8), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.2 }));
+        doorHandle.position.set(1.15, 0, 0.06);
+        doorLeaf.add(doorHandle);
+
+        const porchLightFixture = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.35, 0.2), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
+        porchLightFixture.position.set(-1.0, 3.6, 3.14);
+        houseGroup.add(porchLightFixture);
+
+        const frontWindowFrame = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.6, 0.1), frameMat);
+        frontWindowFrame.position.set(-4.2, 1.9, 3.05);
+        houseGroup.add(frontWindowFrame);
+
+        const frontWindowGlass = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 2.4), glassMat);
+        frontWindowGlass.position.set(-4.2, 1.9, 3.11);
+        houseGroup.add(frontWindowGlass);
+
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0xffcc77, transparent: true, opacity: 0 });
+        const glowInterior = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 2.4), glowMat);
+        glowInterior.position.set(-4.2, 1.9, 3.12);
+        houseGroup.add(glowInterior);
+
+        // ==========================================
+        // 5. MEJA TERAS DEPAN RUMAH & AREA KOPI
+        // ==========================================
+        const patioGroup = new THREE.Group();
+        scene.add(patioGroup);
+
+        const patioFloor = new THREE.Mesh(
+            new THREE.BoxGeometry(7.6, 0.22, 5.8),
+            new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.45, metalness: 0.1 })
+        );
+        patioFloor.position.set(-2.0, 0.11, 5.3);
+        patioFloor.receiveShadow = true;
+        patioGroup.add(patioFloor);
+
+        const porchTable = new THREE.Group();
+        porchTable.position.set(-1.8, 0.11, 5.4);
+        patioGroup.add(porchTable);
+
+        const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.95), new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.5 }));
+        tableTop.position.set(0, 0.95, 0);
+        tableTop.castShadow = true;
+        porchTable.add(tableTop);
+
+        const tableIronMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.8 });
+        [-0.7, 0.7].forEach(xL => {
+            const legFrame = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.91, 0.88), tableIronMat);
+            legFrame.position.set(xL, 0.47, 0);
+            legFrame.castShadow = true;
+            porchTable.add(legFrame);
+        });
+
+        const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 });
+        const coffeePot = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.28, 16), ceramicMat);
+        coffeePot.position.set(0, 1.13, -0.15);
+        coffeePot.castShadow = true;
+        porchTable.add(coffeePot);
+
+        const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.05, 0.16, 12), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+        vase.position.set(0.4, 1.07, 0.15);
+        porchTable.add(vase);
+
+        const succulent = new THREE.Mesh(new THREE.DodecahedronGeometry(0.08, 1), new THREE.MeshStandardMaterial({ color: 0x16a34a }));
+        succulent.position.set(0.4, 1.2, 0.15);
+        porchTable.add(succulent);
+
+        [-0.45, 0.45].forEach((xOffset) => {
+            const saucer = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.015, 16), ceramicMat);
+            saucer.position.set(xOffset, 1.0, 0.0);
+            porchTable.add(saucer);
+
+            const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.09, 16), ceramicMat);
+            cup.position.set(xOffset, 1.05, 0.0);
+            cup.castShadow = true;
+            porchTable.add(cup);
+
+            const liquid = new THREE.Mesh(new THREE.CircleGeometry(0.05, 12), new THREE.MeshBasicMaterial({ color: 0x3e2723 }));
+            liquid.rotation.x = -Math.PI / 2;
+            liquid.position.set(xOffset, 1.09, 0.0);
+            porchTable.add(liquid);
+        });
+
+        const steamGeo = new THREE.BufferGeometry();
+        const steamCount = 30;
+        const steamPositions = new Float32Array(steamCount * 3);
+        for (let i = 0; i < steamCount * 3; i += 3) {
+            steamPositions[i] = -1.8 + (Math.random() - 0.5) * 0.8;
+            steamPositions[i + 1] = 1.2 + Math.random() * 0.4;
+            steamPositions[i + 2] = 5.4 + (Math.random() - 0.5) * 0.3;
+        }
+        steamGeo.setAttribute('position', new THREE.BufferAttribute(steamPositions, 3));
+        const steamMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.035, transparent: true, opacity: 0.4 });
+        const steamParticles = new THREE.Points(steamGeo, steamMat);
+        patioGroup.add(steamParticles);
+
+        function createPorchChair(x, z, rotY) {
+            const chair = new THREE.Group();
+            const seatMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.7 });
+            const chairLegMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
+
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.65), seatMat);
+            seat.position.y = 0.55;
+            seat.castShadow = true;
+            chair.add(seat);
+
+            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.65, 0.08), seatMat);
+            backrest.position.set(0, 0.9, -0.28);
+            backrest.castShadow = true;
+            chair.add(backrest);
+
+            [[-0.28, -0.25], [0.28, -0.25], [-0.28, 0.25], [0.28, 0.25]].forEach(([cx, cz]) => {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.55, 8), chairLegMat);
+                leg.position.set(cx, 0.275, cz);
+                leg.castShadow = true;
+                chair.add(leg);
+            });
+
+            chair.position.set(x, 0.11, z);
+            chair.rotation.y = rotY;
+            patioGroup.add(chair);
+            return chair;
+        }
+
+        createPorchChair(-2.9, 5.4, Math.PI / 2);
+        createPorchChair(-0.7, 5.4, -Math.PI / 2);
+
+        // ==========================================
+        // 6. KARAKTER 3D SUAMI & ISTRI
+        // ==========================================
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xfbcfe8, roughness: 0.6 });
+        const husbandShirtMat = new THREE.MeshStandardMaterial({ color: 0x0369a1, roughness: 0.7 });
+        const husbandPantsMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+        const wifeDressMat = new THREE.MeshStandardMaterial({ color: 0xec4899, roughness: 0.7 });
+        const hairDarkMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 });
+        const hairBrownMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+
+        const husbandGroup = new THREE.Group();
+        scene.add(husbandGroup);
+
+        const hTorso = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.58, 0.26), husbandShirtMat);
+        hTorso.position.set(0, 0.95, 0);
+        hTorso.castShadow = true;
+        husbandGroup.add(hTorso);
+
+        const hHead = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), skinMat);
+        hHead.position.set(0, 1.4, 0);
+        hHead.castShadow = true;
+        husbandGroup.add(hHead);
+
+        const hHair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2), hairDarkMat);
+        hHair.position.set(0, 1.42, 0);
+        husbandGroup.add(hHair);
+
+        const hLegs = new THREE.Group();
+        husbandGroup.add(hLegs);
+
+        const hLegL = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.65, 0.14), husbandPantsMat);
+        hLegL.position.set(-0.12, 0.35, 0);
+        hLegs.add(hLegL);
+
+        const hLegR = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.65, 0.14), husbandPantsMat);
+        hLegR.position.set(0.12, 0.35, 0);
+        hLegs.add(hLegR);
+
+        const hArm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.45, 8), husbandShirtMat);
+        hArm.position.set(0.16, 0.95, 0.18);
+        hArm.rotation.x = Math.PI / 3;
+        husbandGroup.add(hArm);
+
+        const wifeGroup = new THREE.Group();
+        scene.add(wifeGroup);
+
+        const wTorso = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.55, 0.24), wifeDressMat);
+        wTorso.position.set(0, 0.94, 0);
+        wTorso.castShadow = true;
+        wifeGroup.add(wTorso);
+
+        const wHead = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), skinMat);
+        wHead.position.set(0, 1.38, 0);
+        wHead.castShadow = true;
+        wifeGroup.add(wHead);
+
+        const wHair = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 16), hairBrownMat);
+        wHair.position.set(0, 1.38, -0.04);
+        wifeGroup.add(wHair);
+
+        const wHairStrand = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.45, 0.12), hairBrownMat);
+        wHairStrand.position.set(0, 1.15, -0.12);
+        wifeGroup.add(wHairStrand);
+
+        const wLegs = new THREE.Group();
+        wifeGroup.add(wLegs);
+
+        const wSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.6, 0.26), wifeDressMat);
+        wSkirt.position.set(0, 0.45, 0);
+        wLegs.add(wSkirt);
+
+        const wArm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.42, 8), wifeDressMat);
+        wArm.position.set(-0.16, 0.95, 0.18);
+        wArm.rotation.x = Math.PI / 3;
+        wifeGroup.add(wArm);
+
+        function setPeopleSittingPose() {
+            hLegL.rotation.x = -Math.PI / 2.2;
+            hLegL.position.set(-0.12, 0.62, 0.26);
+            hLegR.rotation.x = -Math.PI / 2.2;
+            hLegR.position.set(0.12, 0.62, 0.26);
+            hTorso.position.y = 0.92;
+            hHead.position.y = 1.37;
+            husbandGroup.position.set(-2.9, 0.11, 5.4);
+            husbandGroup.rotation.y = Math.PI / 2;
+            husbandGroup.visible = true;
+
+            wSkirt.rotation.x = -Math.PI / 2.5;
+            wSkirt.position.set(0, 0.62, 0.22);
+            wTorso.position.y = 0.92;
+            wHead.position.y = 1.36;
+            wifeGroup.position.set(-0.7, 0.11, 5.4);
+            wifeGroup.rotation.y = -Math.PI / 2;
+            wifeGroup.visible = true;
+        }
+
+        function setPeopleStandingPose() {
+            hLegL.rotation.x = 0;
+            hLegL.position.set(-0.12, 0.35, 0);
+            hLegR.rotation.x = 0;
+            hLegR.position.set(0.12, 0.35, 0);
+            hTorso.position.y = 1.25;
+            hHead.position.y = 1.70;
+
+            wSkirt.rotation.x = 0;
+            wSkirt.position.set(0, 0.45, 0);
+            wTorso.position.y = 1.22;
+            wHead.position.y = 1.66;
+        }
+
+        setPeopleSittingPose();
+
+        // Animasi Masuk/Keluar
+        let isPeopleInside = false;
+        let isTransitioningPeople = false;
+
+        function animatePeopleGoInside() {
+            if (isPeopleInside || isTransitioningPeople) return;
+            isTransitioningPeople = true;
+
+            const statusOrang = document.getElementById('status-orang');
+            statusOrang.textContent = '🚶‍♂️ Berdiri & Berjalan Masuk...';
+            statusOrang.style.color = '#38bdf8';
+
+            setPeopleStandingPose();
+
+            new TWEEN.Tween(husbandGroup.rotation).to({ y: -Math.PI / 4 }, 500).start();
+            new TWEEN.Tween(wifeGroup.rotation).to({ y: -Math.PI * 0.75 }, 500).start();
+
+            new TWEEN.Tween(doorHinge.rotation)
+                .to({ y: -Math.PI / 2.2 }, 600)
+                .delay(300)
+                .start();
+
+            new TWEEN.Tween(husbandGroup.position)
+                .to({ x: -1.2, z: 3.3 }, 1200)
+                .delay(400)
+                .start();
+
+            new TWEEN.Tween(wifeGroup.position)
+                .to({ x: -0.8, z: 3.3 }, 1200)
+                .delay(500)
+                .start();
+
+            new TWEEN.Tween(husbandGroup.position)
+                .to({ x: -1.2, z: 1.8 }, 1000)
+                .delay(1600)
+                .start();
+
+            new TWEEN.Tween(wifeGroup.position)
+                .to({ x: -0.8, z: 1.8 }, 1000)
+                .delay(1700)
+                .onComplete(() => {
+                    husbandGroup.visible = false;
+                    wifeGroup.visible = false;
+
+                    new TWEEN.Tween(doorHinge.rotation)
+                        .to({ y: 0 }, 600)
+                        .onComplete(() => {
+                            isPeopleInside = true;
+                            isTransitioningPeople = false;
+                            statusOrang.textContent = '🏠 Di Dalam Rumah (Aman)';
+                            statusOrang.style.color = '#f59e0b';
+                        })
+                        .start();
+                })
+                .start();
+        }
+
+        function animatePeopleGoOutside() {
+            if (!isPeopleInside || isTransitioningPeople) return;
+            isTransitioningPeople = true;
+
+            const statusOrang = document.getElementById('status-orang');
+            statusOrang.textContent = '🚶‍♀️ Keluar Rumah Menuju Teras...';
+            statusOrang.style.color = '#38bdf8';
+
+            husbandGroup.position.set(-1.2, 0.11, 1.8);
+            wifeGroup.position.set(-0.8, 0.11, 1.8);
+            husbandGroup.rotation.y = 0;
+            wifeGroup.rotation.y = 0;
+            setPeopleStandingPose();
+            husbandGroup.visible = true;
+            wifeGroup.visible = true;
+
+            new TWEEN.Tween(doorHinge.rotation).to({ y: -Math.PI / 2.2 }, 600).start();
+
+            new TWEEN.Tween(husbandGroup.position).to({ x: -1.2, z: 3.5 }, 1000).delay(500).start();
+            new TWEEN.Tween(wifeGroup.position).to({ x: -0.8, z: 3.5 }, 1000).delay(600).start();
+
+            new TWEEN.Tween(husbandGroup.position).to({ x: -2.9, z: 5.4 }, 1200).delay(1500).start();
+            new TWEEN.Tween(wifeGroup.position).to({ x: -0.7, z: 5.4 }, 1200).delay(1600).start();
+
+            new TWEEN.Tween(doorHinge.rotation).to({ y: 0 }, 600).delay(1800).start();
+
+            setTimeout(() => {
+                setPeopleSittingPose();
+                isPeopleInside = false;
+                isTransitioningPeople = false;
+                statusOrang.textContent = '☕ Duduk Ngopi di Teras';
+                statusOrang.style.color = '#4ade80';
+            }, 2800);
+        }
+
+        // ==========================================
+        // 7. MEKANISME KANOPI & JEMURAN SISI KANAN
+        // ==========================================
+        const sideCanopyGroup = new THREE.Group();
+        sideCanopyGroup.position.set(6.2, 0, 0);
+        scene.add(sideCanopyGroup);
+
+        const sideTerrace = new THREE.Mesh(
+            new THREE.BoxGeometry(4.6, 0.2, 9.5),
+            new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.6 })
+        );
+        sideTerrace.position.set(0, 0.1, 0.2);
+        sideTerrace.receiveShadow = true;
+        sideCanopyGroup.add(sideTerrace);
+
+        const sideWallHouse = new THREE.Mesh(new THREE.BoxGeometry(0.3, 5.2, 9.0), wallWhiteMat);
+        sideWallHouse.position.set(-2.2, 2.6, 0);
+        sideWallHouse.castShadow = true;
+        sideWallHouse.receiveShadow = true;
+        sideCanopyGroup.add(sideWallHouse);
+
+        const pergolaMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.6, roughness: 0.3 });
+        const beamGeo = new THREE.BoxGeometry(4.0, 0.12, 0.12);
+
+        [-3.8, 3.8].forEach(zPerg => {
+            const col = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.4, 0.12), pergolaMat);
+            col.position.set(1.9, 2.2, zPerg);
+            col.castShadow = true;
+            sideCanopyGroup.add(col);
+
+            const beam = new THREE.Mesh(beamGeo, pergolaMat);
+            beam.position.set(-0.15, 4.4, zPerg);
+            beam.castShadow = true;
+            sideCanopyGroup.add(beam);
+        });
+
+        const longBeam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 8.0), pergolaMat);
+        longBeam.position.set(1.9, 4.4, 0);
+        longBeam.castShadow = true;
+        sideCanopyGroup.add(longBeam);
+
+        const wireMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95, roughness: 0.2 });
+        [-1.8, 1.8].forEach(xWire => {
+            const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 7.6, 8), wireMat);
+            cable.rotation.x = Math.PI / 2;
+            cable.position.set(xWire, 4.3, 0);
+            sideCanopyGroup.add(cable);
+        });
+
+        const NUM_RIBS = 9;
+        const Z_START = -3.5;
+        const Z_END = 3.5;
+        const CANOPY_WIDTH = 3.6;
+
+        const battenBars = [];
+        const barGeo = new THREE.CylinderGeometry(0.024, 0.024, CANOPY_WIDTH, 12);
+        const barMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.3 });
+
+        for (let i = 0; i < NUM_RIBS; i++) {
+            const bar = new THREE.Mesh(barGeo, barMat);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 4.3, Z_START);
+            bar.castShadow = true;
+            sideCanopyGroup.add(bar);
+            battenBars.push(bar);
+
+            bar.rings = [];
+            [-CANOPY_WIDTH / 2 + 0.05, CANOPY_WIDTH / 2 - 0.05].forEach(xRing => {
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.01, 8, 16), wireMat);
+                ring.position.set(xRing, 4.3, Z_START);
+                ring.rotation.y = Math.PI / 2;
+                sideCanopyGroup.add(ring);
+                bar.rings.push(ring);
+            });
+        }
+
+        function generateFabricTexture() {
+            const c = document.createElement('canvas');
+            c.width = 512;
+            c.height = 512;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(0, 0, 512, 512);
+            ctx.fillStyle = '#f8fafc';
+            for (let x = 32; x < 512; x += 64) {
+                ctx.fillRect(x, 0, 16, 512);
+            }
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(3, 1);
+            return tex;
+        }
+
+        const fabricMat = new THREE.MeshStandardMaterial({
+            map: generateFabricTexture(),
+            roughness: 0.85,
+            metalness: 0.05,
+            side: THREE.DoubleSide
+        });
+
+        const fabricSegments = [];
+        const SEG_X = 18;
+        const SEG_Z = 14;
+
+        for (let i = 0; i < NUM_RIBS - 1; i++) {
+            const geo = new THREE.PlaneGeometry(CANOPY_WIDTH, 1, SEG_X, SEG_Z);
+            const mesh = new THREE.Mesh(geo, fabricMat);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            sideCanopyGroup.add(mesh);
+            fabricSegments.push(mesh);
+        }
+
+        const pullLineGeo = new THREE.BufferGeometry();
+        const pullLinePos = new Float32Array(6);
+        pullLineGeo.setAttribute('position', new THREE.BufferAttribute(pullLinePos, 3));
+        const pullLine = new THREE.Line(pullLineGeo, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 }));
+        sideCanopyGroup.add(pullLine);
+
+        const winchServo = new THREE.Group();
+        const winchBody = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.42, 0.42), new THREE.MeshStandardMaterial({ color: 0x1d4ed8 }));
+        winchServo.add(winchBody);
+
+        const winchSpool = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.16, 16), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.6 }));
+        winchSpool.rotation.z = Math.PI / 2;
+        winchSpool.position.set(0.18, 0.08, 0);
+        winchServo.add(winchSpool);
+        winchServo.position.set(1.9, 4.4, -3.6);
+        sideCanopyGroup.add(winchServo);
+
+        function updateFabricCanopy(deployFactor, time = 0) {
+            const collapsedGap = 0.09;
+            const ribPositions = [];
+
+            for (let i = 0; i < NUM_RIBS; i++) {
+                const maxPos = Z_START + (i / (NUM_RIBS - 1)) * (Z_END - Z_START);
+                const minPos = Z_START + i * collapsedGap;
+                const currentZ = minPos + (maxPos - minPos) * deployFactor;
+
+                ribPositions.push(currentZ);
+                battenBars[i].position.z = currentZ;
+
+                if (battenBars[i].rings) {
+                    battenBars[i].rings.forEach(r => r.position.z = currentZ);
+                }
+            }
+
+            for (let i = 0; i < NUM_RIBS - 1; i++) {
+                const zA = ribPositions[i];
+                const zB = ribPositions[i + 1];
+                const segDist = zB - zA;
+                const sagDepth = (1.0 - deployFactor) * 0.45 + 0.06;
+
+                const geo = fabricSegments[i].geometry;
+                const pos = geo.attributes.position;
+
+                let idx = 0;
+                for (let row = 0; row <= SEG_Z; row++) {
+                    const t = row / SEG_Z;
+                    const zLocal = zA + t * segDist;
+                    const breeze = (deployFactor > 0.3) ? Math.sin(time * 3 + zLocal * 2) * 0.02 * deployFactor : 0;
+                    const yDrop = Math.sin(t * Math.PI) * sagDepth;
+                    const yLocal = 4.3 - yDrop + breeze;
+
+                    for (let col = 0; col <= SEG_X; col++) {
+                        const xLocal = ((col / SEG_X) - 0.5) * CANOPY_WIDTH;
+                        pos.setXYZ(idx, xLocal, yLocal, zLocal);
+                        idx++;
+                    }
+                }
+                pos.needsUpdate = true;
+                geo.computeVertexNormals();
+            }
+
+            const leadRibZ = ribPositions[NUM_RIBS - 1];
+            const pArr = pullLine.geometry.attributes.position.array;
+            pArr[0] = 1.85; pArr[1] = 4.3; pArr[2] = 3.6;
+            pArr[3] = 1.75; pArr[4] = 4.3; pArr[5] = leadRibZ;
+            pullLine.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Rel Jemuran Samping
+        [-1.2, 1.2].forEach(xRail => {
+            const rail = new THREE.Mesh(
+                new THREE.BoxGeometry(0.06, 0.06, 6.5),
+                new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85 })
+            );
+            rail.position.set(xRail, 2.9, 0.0);
+            sideCanopyGroup.add(rail);
+        });
+
+        const clothesRack = new THREE.Group();
+        sideCanopyGroup.add(clothesRack);
+
+        const rackPipeMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.6, roughness: 0.3 });
+        [-0.55, 0, 0.55].forEach(xBar => {
+            const pipe = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 2.8), rackPipeMat);
+            pipe.position.set(xBar, 2.9, 0);
+            clothesRack.add(pipe);
+        });
+
+        [-1.4, 1.4].forEach(zSide => {
+            const side = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 0.05), rackPipeMat);
+            side.position.set(0, 2.9, zSide);
+            clothesRack.add(side);
+        });
+
+        const clothList = [];
+        const shirtColors = [0xef4444, 0x3b82f6, 0xf59e0b, 0x10b981, 0x8b5cf6, 0xec4899];
+
+        [-0.55, 0, 0.55].forEach((xBar, rIdx) => {
+            for (let z = -1.0; z <= 1.0; z += 0.65) {
+                const cColor = shirtColors[(Math.abs(Math.round(z * 10)) + rIdx) % shirtColors.length];
+                const clothGroup = new THREE.Group();
+                clothGroup.position.set(xBar, 2.85, z);
+
+                const hanger = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.1, 0.01, 6, 12, Math.PI),
+                    new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9 })
+                );
+                hanger.rotation.z = Math.PI;
+                hanger.rotation.y = Math.PI / 2;
+                hanger.position.set(0, -0.04, 0);
+                clothGroup.add(hanger);
+
+                const shirt = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.03, 0.85, 0.48),
+                    new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.85 })
+                );
+                shirt.position.set(0, -0.52, 0);
+                shirt.castShadow = true;
+                clothGroup.add(shirt);
+
+                clothGroup.phase = Math.random() * Math.PI * 2;
+                clothesRack.add(clothGroup);
+                clothList.push(clothGroup);
+            }
+        });
+
+        const s1Group = new THREE.Group();
+        const s1B = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.38, 0.4), new THREE.MeshStandardMaterial({ color: 0x1d4ed8 }));
+        s1Group.add(s1B);
+        const s1A = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.32, 0.02), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        s1A.position.set(0, 0.18, 0.22);
+        s1Group.add(s1A);
+        s1Group.position.set(-1.4, 3.1, -2.8);
+        sideCanopyGroup.add(s1Group);
+
+        // Pekarangan
+        const yard = new THREE.Mesh(
+            new THREE.PlaneGeometry(60, 60),
+            new THREE.MeshStandardMaterial({ color: 0x36633b, roughness: 0.95 })
+        );
+        yard.rotation.x = -Math.PI / 2;
+        yard.receiveShadow = true;
+        scene.add(yard);
+
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+        for (let z = 8.5; z <= 15; z += 1.3) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.08, 0.8), stoneMat);
+            step.position.set(-1.8, 0.05, z);
+            step.receiveShadow = true;
+            scene.add(step);
+        }
+
+        const fenceMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+        const backFence = new THREE.Mesh(new THREE.BoxGeometry(32, 2.8, 0.3), fenceMat);
+        backFence.position.set(0, 1.4, -9);
+        backFence.castShadow = true;
+        scene.add(backFence);
+
+        [-13, 13].forEach(xFence => {
+            const sideFence = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.8, 26), fenceMat);
+            sideFence.position.set(xFence, 1.4, 3);
+            sideFence.castShadow = true;
+            scene.add(sideFence);
+        });
+
+        function createTree(x, z, scale = 1) {
+            const tree = new THREE.Group();
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * scale, 0.35 * scale, 4 * scale, 8), trunkMat);
+            trunk.position.y = 2 * scale;
+            trunk.castShadow = true;
+            tree.add(trunk);
+
+            const foliageMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.9 });
+            const foliage1 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0 * scale, 1), foliageMat);
+            foliage1.position.y = 4.2 * scale;
+            foliage1.castShadow = true;
+            tree.add(foliage1);
+
+            tree.position.set(x, 0, z);
+            scene.add(tree);
+            return tree;
+        }
+
+        createTree(-9.5, 8.5, 1.2);
+        createTree(10.5, 9.5, 1.25);
+        createTree(-10.5, -5.5, 1.1);
+
+        // ==========================================
+        // 8. HUJAN & WEB AUDIO
+        // ==========================================
+        const RAIN_COUNT = 2500;
+        const rainGeo = new THREE.BufferGeometry();
+        const rainPos = new Float32Array(RAIN_COUNT * 3);
+        for (let i = 0; i < RAIN_COUNT * 3; i += 3) {
+            rainPos[i] = (Math.random() - 0.5) * 34;
+            rainPos[i + 1] = Math.random() * 22;
+            rainPos[i + 2] = (Math.random() - 0.5) * 34;
+        }
+        rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+        const rainParticles = new THREE.Points(
+            rainGeo,
+            new THREE.PointsMaterial({ color: 0xbae6fd, size: 0.07, transparent: true, opacity: 0.75 })
+        );
+        rainParticles.visible = false;
+        scene.add(rainParticles);
+
+        let audioCtx = null, rainGainNode = null, isAudioEnabled = true;
+
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+
+                const bufferSize = audioCtx.sampleRate * 2;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+                const whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 850;
+
+                rainGainNode = audioCtx.createGain();
+                rainGainNode.gain.value = 0;
+
+                whiteNoise.connect(filter);
+                filter.connect(rainGainNode);
+                rainGainNode.connect(audioCtx.destination);
+                whiteNoise.start(0);
+            } catch (e) { }
+        }
+
+        function playServoSound() {
+            if (!isAudioEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(190, audioCtx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.42);
+            } catch (e) { }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const btn = document.getElementById('toggle-audio');
+            if (isAudioEnabled) {
+                btn.textContent = 'AKTIF';
+                btn.className = 'switch-btn on';
+                initAudio();
+            } else {
+                btn.textContent = 'NONAKTIF';
+                btn.className = 'switch-btn';
+                if (rainGainNode) rainGainNode.gain.value = 0;
+            }
+        }
+
+        // ==========================================
+        // 9. LOGIKA STATUS CUACA & SENSOR
+        // ==========================================
+        let targetCanopy = 0.0, currentCanopy = 0.0;
+        let targetJemuran = 1.0, currentJemuran = 1.0;
+        let activeMode = 'cerah';
+
+        function executeMode(mode) {
+            activeMode = mode;
+            initAudio();
+
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-' + mode);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const statusSensor = document.getElementById('status-sensor');
+            const statusCuaca = document.getElementById('status-cuaca');
+            const statusKanopi = document.getElementById('status-kanopi');
+            const statusJemuran = document.getElementById('status-jemuran');
+
+            playServoSound();
+
+            if (mode === 'cerah') {
+                targetCanopy = 0.0;
+                targetJemuran = 1.0;
+                rainParticles.visible = false;
+                if (rainGainNode && isAudioEnabled) rainGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+
+                waterDropMat.opacity = 0.0;
+                sensorLED.material.color.setHex(0x334155);
+                sensorIndicatorLight.intensity = 0;
+                statusSensor.textContent = 'KERING (0 V)';
+                statusSensor.className = 'badge badge-sunny';
+
+                new TWEEN.Tween(ambientLight).to({ intensity: 0.75 }, 800).start();
+                new TWEEN.Tween(sunLight).to({ intensity: 1.45 }, 800).start();
+                new TWEEN.Tween(porchLight).to({ intensity: 0 }, 800).start();
+                new TWEEN.Tween(indoorLight).to({ intensity: 0 }, 800).start();
+                new TWEEN.Tween(sideYardLamp).to({ intensity: 0 }, 800).start();
+                glowMat.opacity = 0;
+
+                scene.background.set(0x87ceeb);
+                scene.fog.color.set(0x87ceeb);
+
+                statusCuaca.textContent = 'TERIK PANAS';
+                statusCuaca.className = 'badge badge-sunny';
+                statusKanopi.textContent = 'MENGKERUT (0%)';
+                statusKanopi.className = 'badge badge-retracted';
+                statusJemuran.textContent = 'MAJU KELUAR (100%)';
+                statusJemuran.className = 'badge badge-active';
+
+                updateSlidersUI(0, 1);
+                animatePeopleGoOutside();
+
+            } else if (mode === 'hujan') {
+                targetCanopy = 1.0;
+                targetJemuran = 0.15;
+                rainParticles.visible = true;
+                if (rainGainNode && isAudioEnabled) rainGainNode.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 1.0);
+
+                waterDropMat.opacity = 0.75;
+                sensorLED.material.color.setHex(0x38bdf8);
+                sensorIndicatorLight.intensity = 1.5;
+                statusSensor.textContent = '💧 BASAH AIR HUJAN! (5 V)';
+                statusSensor.className = 'badge badge-rain';
+
+                new TWEEN.Tween(ambientLight).to({ intensity: 0.38 }, 800).start();
+                new TWEEN.Tween(sunLight).to({ intensity: 0.25 }, 800).start();
+                new TWEEN.Tween(porchLight).to({ intensity: 1.4 }, 800).start();
+                new TWEEN.Tween(indoorLight).to({ intensity: 1.2 }, 800).start();
+                new TWEEN.Tween(sideYardLamp).to({ intensity: 0.8 }, 800).start();
+                glowMat.opacity = 0.4;
+
+                scene.background.set(0x334155);
+                scene.fog.color.set(0x334155);
+
+                statusCuaca.textContent = 'HUJAN LEBAT!';
+                statusCuaca.className = 'badge badge-rain';
+                statusKanopi.textContent = 'MEMBENTANG PENUH (100%)';
+                statusKanopi.className = 'badge badge-active';
+                statusJemuran.textContent = 'TERLINDUNG TEDUH (15%)';
+                statusJemuran.className = 'badge badge-retracted';
+
+                updateSlidersUI(1, 0.15);
+                animatePeopleGoInside();
+
+            } else if (mode === 'malam') {
+                targetCanopy = 1.0;
+                targetJemuran = 0.0;
+                rainParticles.visible = false;
+                if (rainGainNode && isAudioEnabled) rainGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+
+                waterDropMat.opacity = 0.0;
+                sensorLED.material.color.setHex(0x334155);
+                sensorIndicatorLight.intensity = 0;
+                statusSensor.textContent = 'KERING (MALAM)';
+                statusSensor.className = 'badge badge-sunny';
+
+                new TWEEN.Tween(ambientLight).to({ intensity: 0.18 }, 800).start();
+                new TWEEN.Tween(sunLight).to({ intensity: 0.08 }, 800).start();
+                new TWEEN.Tween(porchLight).to({ intensity: 2.8 }, 800).start();
+                new TWEEN.Tween(indoorLight).to({ intensity: 2.4 }, 800).start();
+                new TWEEN.Tween(sideYardLamp).to({ intensity: 2.2 }, 800).start();
+                glowMat.opacity = 0.85;
+
+                scene.background.set(0x0a0f1d);
+                scene.fog.color.set(0x0a0f1d);
+
+                statusCuaca.textContent = 'MALAM HARI';
+                statusCuaca.className = 'badge badge-rain';
+                statusKanopi.textContent = 'MEMBENTANG MENUTUP';
+                statusKanopi.className = 'badge badge-active';
+                statusJemuran.textContent = 'MASUK TOTAL (0%)';
+                statusJemuran.className = 'badge badge-retracted';
+
+                updateSlidersUI(1, 0);
+                animatePeopleGoInside();
+            }
+        }
+
+        // ==========================================
+        // 10. LOGIKA MODE AUTO 3 DETIK PER FUNGSI
+        // ==========================================
+        let isAutoModeActive = true;
+        let autoStepIndex = 0;
+        const STEP_DURATION = 3.0;
+        let stepTimer = 0.0;
+
+        const autoSteps = [
+            { mode: 'cerah', desc: '1/3: Cerah -> Jemur & Orang Ngopi' },
+            { mode: 'hujan', desc: '2/3: Hujan -> Kanopi Bentang & Masuk Rumah' },
+            { mode: 'malam', desc: '3/3: Malam -> Lampu Rumah Menyala Hangat' }
+        ];
+
+        function toggleAutoMode() {
+            isAutoModeActive = !isAutoModeActive;
+            const btn = document.getElementById('btn-toggle-auto');
+            const icon = document.getElementById('auto-btn-icon');
+            const text = document.getElementById('auto-btn-text');
+
+            if (isAutoModeActive) {
+                btn.className = 'auto-btn';
+                icon.textContent = '⏸️';
+                text.textContent = 'AUTO ON';
+                stepTimer = 0;
+            } else {
+                btn.className = 'auto-btn paused';
+                icon.textContent = '▶️';
+                text.textContent = 'PAUSED';
+                document.getElementById('auto-timer-badge').textContent = 'JEDA';
+            }
+        }
+
+        function manualSwitchMode(mode) {
+            if (isAutoModeActive) toggleAutoMode();
+            executeMode(mode);
+        }
+
+        function updateAutoModeLoop(delta) {
+            if (!isAutoModeActive) return;
+
+            stepTimer += delta;
+            const remaining = Math.max(0, STEP_DURATION - stepTimer);
+            const progressPercent = (stepTimer / STEP_DURATION) * 100;
+
+            document.getElementById('auto-progress-fill').style.width = Math.min(100, progressPercent) + '%';
+            document.getElementById('auto-timer-badge').textContent = remaining.toFixed(1) + 's';
+
+            if (stepTimer >= STEP_DURATION) {
+                stepTimer = 0;
+                autoStepIndex = (autoStepIndex + 1) % autoSteps.length;
+
+                const currentStep = autoSteps[autoStepIndex];
+                document.getElementById('auto-stage-desc').textContent = currentStep.desc;
+                executeMode(currentStep.mode);
+            }
+        }
+
+        function onSlideKanopi(val) {
+            if (isAutoModeActive) toggleAutoMode();
+            targetCanopy = parseFloat(val);
+            const pct = Math.round(targetCanopy * 100);
+            document.getElementById('label-val-kanopi').textContent = pct + '% ' + (pct < 25 ? '(Mengkerut)' : pct > 75 ? '(Membentang)' : '(Bergerak)');
+            document.getElementById('status-kanopi').textContent = pct + '%';
+        }
+
+        function onSlideJemuran(val) {
+            if (isAutoModeActive) toggleAutoMode();
+            targetJemuran = parseFloat(val);
+            const pct = Math.round(targetJemuran * 100);
+            document.getElementById('label-val-jemuran').textContent = pct + '%';
+            document.getElementById('status-jemuran').textContent = pct + '%';
+        }
+
+        function updateSlidersUI(cVal, jVal) {
+            document.getElementById('range-kanopi').value = cVal;
+            document.getElementById('range-jemuran').value = jVal;
+            document.getElementById('label-val-kanopi').textContent = Math.round(cVal * 100) + '% ' + (cVal < 0.2 ? '(Mengkerut)' : '(Membentang)');
+            document.getElementById('label-val-jemuran').textContent = Math.round(jVal * 100) + '%';
+        }
+
+        // ==========================================
+        // 11. CAMERA PRESETS
+        // ==========================================
+        function moveCamera(preset) {
+            let targetPos, targetLook;
+            if (preset === 'tiger') {
+                // Zoom close-up ke Peliharaan Macan di tempat tidurnya
+                targetPos = { x: -6.2, y: 2.2, z: 9.8 };
+                targetLook = { x: -6.2, y: 0.6, z: 6.8 };
+            } else if (preset === 'sensor_roof') {
+                targetPos = { x: -2.0, y: 10.4, z: 3.5 };
+                targetLook = { x: -2.0, y: 9.35, z: 1.8 };
+            } else if (preset === 'overview') {
+                targetPos = { x: 15, y: 10, z: 19 };
+                targetLook = { x: 1.5, y: 2.8, z: 1 };
+            } else if (preset === 'porch') {
+                targetPos = { x: -1.8, y: 2.5, z: 9.0 };
+                targetLook = { x: -1.6, y: 1.8, z: 4.2 };
+            } else if (preset === 'side_canopy') {
+                targetPos = { x: 12.5, y: 5.5, z: 4.5 };
+                targetLook = { x: 6.2, y: 3.2, z: 0 };
+            } else if (preset === 'detail_fold') {
+                targetPos = { x: 8.2, y: 4.8, z: -2.2 };
+                targetLook = { x: 6.2, y: 4.2, z: -1.5 };
+            }
+
+            new TWEEN.Tween(camera.position).to(targetPos, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+            new TWEEN.Tween(controls.target).to(targetLook, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+        }
+
+        // ==========================================
+        // 12. 3D LABELS PROJECTION
+        // ==========================================
+        let showLabels = true;
+        const labelPoints = {
+            'lbl-tiger': new THREE.Vector3(-6.2, 1.4, 6.8),
+            'lbl-sensor': new THREE.Vector3(-2.0, 9.7, 1.8),
+            'lbl-coffee': new THREE.Vector3(-1.8, 1.8, 5.4),
+            'lbl-door': new THREE.Vector3(-1.0, 3.2, 3.1),
+            'lbl-canopy': new THREE.Vector3(6.2, 4.6, 0.0),
+            'lbl-rack': new THREE.Vector3(6.2, 3.1, 0.8)
+        };
+
+        function updateLabelsProjection() {
+            if (!showLabels) return;
+            const widthHalf = window.innerWidth / 2;
+            const heightHalf = window.innerHeight / 2;
+
+            for (const [id, vec] of Object.entries(labelPoints)) {
+                const dom = document.getElementById(id);
+                if (!dom) continue;
+                const temp = vec.clone();
+                temp.project(camera);
+
+                if (temp.z > 1) {
+                    dom.style.opacity = '0';
+                    continue;
+                }
+                dom.style.opacity = '1';
+                const x = (temp.x * widthHalf) + widthHalf;
+                const y = -(temp.y * heightHalf) + heightHalf;
+                dom.style.left = `${x}px`;
+                dom.style.top = `${y}px`;
+            }
+        }
+
+        function toggleLabels() {
+            showLabels = !showLabels;
+            const btn = document.getElementById('toggle-labels');
+            const box = document.getElementById('labels-container');
+            if (showLabels) {
+                btn.textContent = 'TAMPIL';
+                btn.className = 'switch-btn on';
+                box.style.display = 'block';
+            } else {
+                btn.textContent = 'SEMBUNYI';
+                btn.className = 'switch-btn';
+                box.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // 13. ANIMATION LOOP
+        // ==========================================
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+
+            TWEEN.update();
+
+            // Mode Auto Loop
+            updateAutoModeLoop(delta);
+
+            // Pergerakan kanopi lipat samping
+            const diffCanopy = targetCanopy - currentCanopy;
+            if (Math.abs(diffCanopy) > 0.001) {
+                currentCanopy += diffCanopy * 0.06;
+                winchSpool.rotation.x += diffCanopy * 0.9;
+            }
+            updateFabricCanopy(currentCanopy, elapsed);
+
+            // Pergerakan rel jemuran samping
+            const diffJemuran = targetJemuran - currentJemuran;
+            if (Math.abs(diffJemuran) > 0.001) {
+                currentJemuran += diffJemuran * 0.07;
+            }
+            clothesRack.position.z = -1.6 + currentJemuran * 2.2;
+            s1A.rotation.z = currentJemuran * Math.PI;
+
+            // Goyangan pakaian di jemuran
+            clothList.forEach(cg => {
+                const swayAmp = (activeMode === 'hujan') ? 0.08 : 0.035;
+                cg.rotation.z = Math.sin(elapsed * 2.8 + cg.phase) * swayAmp;
+            });
+
+            // Animasi Ekor & Nafas Macan
+            tailGroup.rotation.y = Math.sin(elapsed * 2.2) * 0.28;
+            tHeadGroup.rotation.y = Math.sin(elapsed * 1.1) * 0.08;
+            tChest.scale.y = 1.0 + Math.sin(elapsed * 2.5) * 0.02; // Nafas macan
+            updateTigerChain(); // Sinkronisasi posisi tali rantai ke kalung macan
+
+            // Animasi uap kopi
+            const sPos = steamGeo.attributes.position.array;
+            for (let i = 1; i < steamCount * 3; i += 3) {
+                sPos[i] += delta * 0.12;
+                if (sPos[i] > 1.55) {
+                    sPos[i] = 1.18;
+                }
+            }
+            steamGeo.attributes.position.needsUpdate = true;
+
+            // Gestur santai jika sedang duduk di luar
+            if (!isPeopleInside && !isTransitioningPeople) {
+                hHead.rotation.y = Math.sin(elapsed * 1.5) * 0.08;
+                wHead.rotation.y = -Math.sin(elapsed * 1.5) * 0.08;
+                wArm.rotation.z = -0.2 + Math.sin(elapsed * 2.0) * 0.05;
+            }
+
+            // Animasi kedip lampu indikator sensor saat hujan basah
+            if (activeMode === 'hujan') {
+                sensorLED.material.color.setHex((Math.sin(elapsed * 8) > 0) ? 0x38bdf8 : 0x0284c7);
+            }
+
+            // Hujan
+            if (rainParticles.visible) {
+                const pos = rainGeo.attributes.position.array;
+                for (let i = 1; i < RAIN_COUNT * 3; i += 3) {
+                    pos[i] -= 22 * delta;
+                    if (pos[i] < 0.1) pos[i] = 20;
+                }
+                rainGeo.attributes.position.needsUpdate = true;
+            }
+
+            controls.update();
+            updateLabelsProjection();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Mulai
+        updateFabricCanopy(0.0);
+        executeMode('cerah');
+        document.getElementById('auto-stage-desc').textContent = autoSteps[0].desc;
+        animate();
+    </script>
+</body>
+
+</html>
